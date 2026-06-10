@@ -619,7 +619,7 @@ tr:hover td { background: #f5f2ec; }
 // =============================================
 // CONFIG — Replace with your deployed Apps Script URL
 // =============================================
-const GAS_URL = "https://script.google.com/macros/s/AKfycby5UKbX6Ak_8XDceX2Uku0lhxa-Ir8qu8TQ7qyHVuX6P8uE8F1P7bpQnuvPjHzzNVCWLA/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxRRKThOI2zc89XZjgw_s2NQjvFsHO2Q0mMkjt062Nw7upjJYM-xB_M3pnE8TlBnqA6zg/exec";
 
 // =============================================
 // STATE
@@ -647,35 +647,18 @@ function setState(patch) {
 // works perfectly with doGet + callback param.
 // =============================================
 async function api(action, body = {}) {
-  const payload = btoa(unescape(encodeURIComponent(JSON.stringify({ action, ...body }))));
-  const callbackName = "cb_" + Date.now();
-  const url = GAS_URL + "?payload=" + encodeURIComponent(payload) + "&callback=" + callbackName;
-
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error("Timed out. Check Apps Script is deployed as 'Anyone' can access."));
-    }, 20000);
-
-    window[callbackName] = function(data) {
-      cleanup();
-      resolve(data);
-    };
-
-    function cleanup() {
-      clearTimeout(timeout);
-      delete window[callbackName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-    }
-
-    script.onerror = function() {
-      cleanup();
-      reject(new Error("Network error. Check your Apps Script deployment URL."));
-    };
-    script.src = url;
-    document.head.appendChild(script);
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action, ...body }),
   });
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch(e) {
+    console.error("Non-JSON response:", text.slice(0, 300));
+    throw new Error("Bad response from server. Check Apps Script deployment.");
+  }
 }
 
 // =============================================

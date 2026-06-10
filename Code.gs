@@ -4,21 +4,67 @@
 //   Execute as: Me | Who has access: Anyone
 // ============================================================
 
-const MASTER_SHEET_ID = "YOUR_MASTER_GOOGLE_SHEET_ID_HERE"; // <-- Replace this
+const MASTER_SHEET_ID = "1-LE23BxzXQQpy1YzWJ3fyljHGqKWNDC7GQ0kr1wtUiA"; // <-- Replace this
 
-// ---- CORS helper ----
+// ---- CORS + JSONP handler ----
+// Frontend sends: ?payload=<base64json>&callback=<fnName>
+// We return: callbackFn({...result...})
 function doGet(e) {
-  return handleRequest(e);
-}
-function doPost(e) {
-  return handleRequest(e);
-}
-
-function handleRequest(e) {
   const params = e.parameter || {};
-  const body = e.postData ? JSON.parse(e.postData.contents || "{}") : {};
-  const action = params.action || body.action;
+  let body = {};
 
+  if (params.payload) {
+    try {
+      const decoded = decodeURIComponent(escape(Utilities.base64Decode(params.payload, Utilities.Charset.UTF_8).map(b => String.fromCharCode(b)).join("")));
+      body = JSON.parse(decoded);
+    } catch(err) {
+      body = {};
+    }
+  }
+
+  const callback = params.callback || null;
+  const action = body.action || params.action;
+  let result;
+
+  try {
+    switch (action) {
+      case "createRaffle":      result = createRaffle(body); break;
+      case "getRaffle":         result = getRaffle(body); break;
+      case "addDistributor":    result = addDistributor(body); break;
+      case "getDistributors":   result = getDistributors(body); break;
+      case "loginDistributor":  result = loginDistributor(body); break;
+      case "createTicket":      result = createTicket(body); break;
+      case "getTickets":        result = getTickets(body); break;
+      case "closeRaffle":       result = closeRaffle(body); break;
+      case "adminLogin":        result = adminLogin(body); break;
+      default: result = { error: "Unknown action: " + action };
+    }
+  } catch (err) {
+    result = { error: err.message };
+  }
+
+  const json = JSON.stringify(result);
+  if (callback) {
+    return ContentService
+      .createTextOutput(callback + "(" + json + ")")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService
+    .createTextOutput(json)
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  let body = {};
+  try {
+    // Works for both application/json and text/plain
+    const raw = e.postData ? e.postData.contents : "{}";
+    body = JSON.parse(raw || "{}");
+  } catch(err) {
+    body = {};
+  }
+
+  const action = body.action;
   let result;
   try {
     switch (action) {
