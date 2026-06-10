@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RaffleForge — Event Ticket Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* =============================================
+   DESIGN TOKENS
+   Navy + Gold + Parchment — Official/Event feel
+   Signature: physical perforated ticket aesthetic
+   ============================================= */
+:root {
+  --navy:       #0d1b2a;
+  --navy-mid:   #1a2d42;
+  --navy-light: #243d56;
+  --gold:       #c9963a;
+  --gold-light: #e8b86d;
+  --gold-pale:  #f5e8ca;
+  --parchment:  #faf6ef;
+  --white:      #ffffff;
+  --text-main:  #1a1a2e;
+  --text-muted: #5a6880;
+  --red:        #c0392b;
+  --green:      #1a7a4a;
+  --border:     #ddd5c8;
+  --radius:     10px;
+  --shadow:     0 4px 24px rgba(13,27,42,0.13);
+  --shadow-lg:  0 12px 48px rgba(13,27,42,0.22);
+  --ff-display: 'Playfair Display', Georgia, serif;
+  --ff-body:    'Inter', system-ui, sans-serif;
+  --ff-mono:    'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--ff-body);
+  background: var(--navy);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ---- App Shell ---- */
+#app { min-height: 100vh; }
+
+/* ---- Top Nav ---- */
+.topnav {
+  background: var(--navy);
+  border-bottom: 1px solid var(--navy-light);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topnav-brand {
+  font-family: var(--ff-display);
+  font-size: 1.3rem;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.topnav-brand span.dot { 
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--gold); display: inline-block;
+}
+.topnav-links { display: flex; gap: 8px; }
+.nav-btn {
+  background: transparent;
+  border: 1px solid var(--navy-light);
+  color: #aab8c8;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-family: var(--ff-body);
+  cursor: pointer;
+  transition: all 0.18s;
+  letter-spacing: 0.03em;
+}
+.nav-btn:hover, .nav-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(201,150,58,0.08);
+}
+
+/* ---- Page Container ---- */
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+.page-wide { max-width: 1100px; margin: 0 auto; padding: 40px 20px 80px; }
+
+/* ---- Section Header ---- */
+.section-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.section-title {
+  font-family: var(--ff-display);
+  font-size: 2rem;
+  color: var(--white);
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+.section-sub {
+  font-size: 0.88rem;
+  color: #8898aa;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+/* ---- Card ---- */
+.card {
+  background: var(--parchment);
+  border-radius: var(--radius);
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-family: var(--ff-display);
+  font-size: 1.15rem;
+  color: var(--navy);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gold-pale);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-title .icon {
+  width: 28px; height: 28px;
+  background: var(--navy);
+  color: var(--gold);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+}
+
+/* ---- Form Elements ---- */
+.field { margin-bottom: 18px; }
+.field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--navy-light);
+  margin-bottom: 6px;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-size: 0.92rem;
+  font-family: var(--ff-body);
+  background: var(--white);
+  color: var(--text-main);
+  transition: border-color 0.15s;
+  outline: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,150,58,0.12);
+}
+.field-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 540px) { .field-row { grid-template-columns: 1fr; } }
+
+/* ---- Upload Box ---- */
+.upload-box {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.18s;
+  background: var(--white);
+  position: relative;
+}
+.upload-box:hover { border-color: var(--gold); background: #fffbf2; }
+.upload-box input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-icon { font-size: 1.8rem; margin-bottom: 6px; }
+.upload-text { font-size: 0.82rem; color: var(--text-muted); }
+.upload-preview {
+  width: 100%; max-height: 120px; object-fit: contain;
+  border-radius: 6px; margin-top: 10px; border: 1px solid var(--border);
+}
+
+/* ---- Template Selector ---- */
+.template-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 6px; }
+@media (max-width: 540px) { .template-grid { grid-template-columns: 1fr 1fr; } }
+.template-option {
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 8px;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+  background: var(--white);
+}
+.template-option:hover { border-color: var(--gold-light); }
+.template-option.selected { border-color: var(--gold); background: #fffbf2; box-shadow: 0 0 0 3px rgba(201,150,58,0.18); }
+.template-preview {
+  height: 54px; border-radius: 5px; margin-bottom: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tpl-classic  { background: linear-gradient(135deg, #0d1b2a 0%, #1a2d42 100%); color: var(--gold); }
+.tpl-royal    { background: linear-gradient(135deg, #2c1654 0%, #6a3de8 100%); color: #f0e0ff; }
+.tpl-crimson  { background: linear-gradient(135deg, #6b1515 0%, #c0392b 100%); color: #ffe0e0; }
+.tpl-emerald  { background: linear-gradient(135deg, #0d3b26 0%, #1a7a4a 100%); color: #d0ffe8; }
+.tpl-gold     { background: linear-gradient(135deg, #7a5a00 0%, #c9963a 100%); color: #fff8e0; }
+.tpl-midnight { background: linear-gradient(135deg, #0f0f1e 0%, #2d2d6e 100%); color: #b0c8ff; }
+.template-name { font-size: 0.73rem; font-weight: 600; color: var(--text-main); }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 24px;
+  border-radius: 8px;
+  font-family: var(--ff-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.18s;
+  letter-spacing: 0.02em;
+}
+.btn-primary { background: var(--gold); color: var(--navy); }
+.btn-primary:hover { background: var(--gold-light); }
+.btn-primary:disabled { background: #ccc; color: #888; cursor: not-allowed; }
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--gold);
+  color: var(--gold);
+}
+.btn-outline:hover { background: rgba(201,150,58,0.1); }
+.btn-danger { background: var(--red); color: white; }
+.btn-danger:hover { background: #a93226; }
+.btn-sm { padding: 7px 16px; font-size: 0.8rem; }
+.btn-block { width: 100%; justify-content: center; }
+
+/* ---- Alert ---- */
+.alert {
+  padding: 12px 16px;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.alert-success { background: #d4f0e0; color: #0e5233; border-left: 4px solid var(--green); }
+.alert-error   { background: #fde8e8; color: #7a1515; border-left: 4px solid var(--red); }
+.alert-info    { background: #e8f1fd; color: #1a3a6e; border-left: 4px solid #3a7bd5; }
+
+/* ---- Loading Spinner ---- */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(201,150,58,0.3);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =============================================
+   TICKET COMPONENT
+   The signature design element — perforated edge
+   ============================================= */
+.ticket-wrap {
+  position: relative;
+  max-width: 540px;
+  margin: 0 auto;
+  filter: drop-shadow(var(--shadow-lg));
+}
+.ticket {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.ticket-header {
+  padding: 20px 24px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.ticket-logo {
+  width: 52px; height: 52px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: rgba(255,255,255,0.15);
+  padding: 4px;
+  flex-shrink: 0;
+}
+.ticket-logo-placeholder {
+  width: 52px; height: 52px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.ticket-event-name {
+  font-family: var(--ff-display);
+  font-size: 1.2rem;
+  line-height: 1.2;
+  flex: 1;
+}
+.ticket-body-img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+}
+.ticket-body-placeholder {
+  height: 80px;
+  opacity: 0.15;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* Perforated separator */
+.ticket-perf {
+  height: 24px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.ticket-perf::before {
+  content: '';
+  position: absolute;
+  left: -12px; right: -12px;
+  border-top: 2px dashed rgba(255,255,255,0.35);
+}
+.ticket-perf .circle {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--navy);
+  position: absolute;
+  flex-shrink: 0;
+}
+.ticket-perf .circle-left  { left: -11px; }
+.ticket-perf .circle-right { right: -11px; }
+
+.ticket-info {
+  padding: 16px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ticket-info-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.ticket-info-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  white-space: nowrap;
+}
+.ticket-info-value {
+  font-family: var(--ff-display);
+  font-size: 0.95rem;
+  text-align: right;
+}
+.ticket-number-large {
+  font-family: var(--ff-mono);
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  padding: 10px 24px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  text-align: center;
+  opacity: 0.9;
+}
+
+/* Template color themes */
+.tpl-theme-classic  { background: linear-gradient(160deg, #0d1b2a 0%, #1a3a5c 100%); color: #f5e8ca; }
+.tpl-theme-royal    { background: linear-gradient(160deg, #2c1654 0%, #6a3de8 100%); color: #f0e8ff; }
+.tpl-theme-crimson  { background: linear-gradient(160deg, #6b1515 0%, #a93226 100%); color: #fff0f0; }
+.tpl-theme-emerald  { background: linear-gradient(160deg, #0d3b26 0%, #155d3a 100%); color: #e0fff0; }
+.tpl-theme-gold     { background: linear-gradient(160deg, #5a3d00 0%, #c9963a 100%); color: #fff8e0; }
+.tpl-theme-midnight { background: linear-gradient(160deg, #080820 0%, #1a1a6e 100%); color: #c8d8ff; }
+
+/* ---- Admin Stats ---- */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+@media (max-width: 540px) { .stat-grid { grid-template-columns: 1fr 1fr; } }
+.stat-card {
+  background: var(--navy-mid);
+  border: 1px solid var(--navy-light);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  text-align: center;
+}
+.stat-value {
+  font-family: var(--ff-display);
+  font-size: 2rem;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-label { font-size: 0.72rem; color: #8898aa; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* ---- Tickets Table ---- */
+.table-wrap { overflow-x: auto; margin-top: 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+th {
+  background: var(--navy-mid);
+  color: var(--gold);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--navy-light);
+}
+td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #eee;
+  color: var(--text-main);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f5f2ec; }
+.ticket-num { font-family: var(--ff-mono); font-size: 0.78rem; color: var(--navy); }
+
+/* ---- Status Badge ---- */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.badge-active  { background: #d4f0e0; color: #0e5233; }
+.badge-closed  { background: #fde8e8; color: #7a1515; }
+.badge-dist    { background: #e8f1fd; color: #1a3a6e; }
+
+/* ---- Home Landing ---- */
+.home-hero {
+  min-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(201,150,58,0.12) 0%, transparent 65%);
+}
+.home-hero-title {
+  font-family: var(--ff-display);
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  color: var(--white);
+  line-height: 1.1;
+  margin-bottom: 16px;
+  max-width: 700px;
+}
+.home-hero-title span { color: var(--gold); }
+.home-hero-sub {
+  font-size: 1rem;
+  color: #8898aa;
+  max-width: 480px;
+  line-height: 1.7;
+  margin-bottom: 40px;
+}
+.home-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 700px;
+  width: 100%;
+  margin: 0 auto;
+}
+@media (max-width: 600px) { .home-cards { grid-template-columns: 1fr; } }
+.home-card {
+  background: var(--navy-mid);
+  border: 1px solid var(--navy-light);
+  border-radius: 12px;
+  padding: 24px 18px;
+  cursor: pointer;
+  transition: all 0.22s;
+  text-align: left;
+}
+.home-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(201,150,58,0.15);
+}
+.home-card-icon { font-size: 1.8rem; margin-bottom: 12px; }
+.home-card-title { font-family: var(--ff-display); color: var(--white); font-size: 1rem; margin-bottom: 6px; }
+.home-card-desc { font-size: 0.78rem; color: #6a7c90; line-height: 1.5; }
+
+/* ---- Distributor login screen ---- */
+.login-box {
+  max-width: 420px;
+  margin: 80px auto 0;
+}
+
+/* ---- Share button row ---- */
+.share-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+.share-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.18s;
+}
+.share-btn-wa  { background: #25d366; color: white; }
+.share-btn-wa:hover { background: #1dba5a; }
+.share-btn-dl  { background: var(--navy); color: var(--gold); border: 1px solid var(--gold); }
+.share-btn-dl:hover { background: var(--navy-mid); }
+.share-btn-native { background: var(--gold); color: var(--navy); }
+.share-btn-native:hover { background: var(--gold-light); }
+
+/* ---- Misc ---- */
+.divider { height: 1px; background: var(--navy-light); margin: 24px 0; }
+.text-center { text-align: center; }
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.gap-8 { gap: 8px; }
+.flex { display: flex; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+
+.raffle-id-display {
+  background: var(--navy-mid);
+  border: 1px solid var(--navy-light);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-top: 8px;
+  font-family: var(--ff-mono);
+  font-size: 0.85rem;
+  color: var(--gold-light);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.raffle-id-display strong { color: var(--white); font-family: var(--ff-body); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* ---- Canvas (hidden, for ticket export) ---- */
+#ticket-canvas { display: none; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--navy); }
+::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 3px; }
+
+/* ---- Disabled state ---- */
+.closed-banner {
+  background: linear-gradient(90deg, #6b1515, #a93226);
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.dist-tag {
+  font-size: 0.72rem;
+  background: var(--navy-mid);
+  color: var(--gold-light);
+  border: 1px solid var(--navy-light);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-family: var(--ff-mono);
+}
+
+.inline-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px;
+  color: #8898aa;
+  font-size: 0.88rem;
+}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<canvas id="ticket-canvas"></canvas>
+
+<script type="module">
+// =============================================
+// CONFIG — Replace with your deployed Apps Script URL
+// =============================================
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyVlr4mgWnXbQ0IkM41-cPX5T-Wj4tv1rZ9TclNS0T7VOJOmF7gOmhwFCFLLRbnAS0W0w/exec";
+
+// =============================================
+// STATE
+// =============================================
+let state = {
+  screen: "home",          // home | initiate | ticket-login | ticketing | admin-login | admin
+  raffle: null,            // { raffleSheetId, meta, ... }
+  dist: null,              // { distId, distName }
+  ticketResult: null,      // last generated ticket
+  adminData: null,         // { meta, tickets, distributors }
+  loading: false,
+  error: null,
+  success: null,
+};
+
+function setState(patch) {
+  Object.assign(state, patch);
+  render();
+}
+
+// =============================================
+// API HELPER
+// =============================================
+async function api(action, body = {}) {
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, ...body }),
+  });
+  return res.json();
+}
+
+// =============================================
+// IMAGE → DATA URL HELPER (for logo/body upload)
+// =============================================
+function fileToDataUrl(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+// =============================================
+// TICKET CANVAS RENDERER
+// Draws ticket onto a canvas → PNG for sharing
+// =============================================
+async function renderTicketToCanvas(ticketData) {
+  const canvas = document.getElementById("ticket-canvas");
+  const ctx = canvas.getContext("2d");
+  const W = 600, H = 300;
+  canvas.width = W; canvas.height = H;
+
+  const themes = {
+    classic:  ["#0d1b2a","#1a3a5c","#f5e8ca","#c9963a"],
+    royal:    ["#2c1654","#6a3de8","#f0e8ff","#c9a0f0"],
+    crimson:  ["#6b1515","#a93226","#fff0f0","#e8a0a0"],
+    emerald:  ["#0d3b26","#155d3a","#e0fff0","#7de8b0"],
+    gold:     ["#5a3d00","#c9963a","#fff8e0","#ffe0a0"],
+    midnight: ["#080820","#1a1a6e","#c8d8ff","#8aaaf5"],
+  };
+  const [bg1, bg2, textColor, accentColor] = themes[ticketData.templateId] || themes.classic;
+
+  // Background gradient
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, bg1);
+  grad.addColorStop(1, bg2);
+  ctx.fillStyle = grad;
+  roundRect(ctx, 0, 0, W, H, 14);
+  ctx.fill();
+
+  // Body image (if any)
+  if (ticketData.bodyImageUrl && ticketData.bodyImageUrl.startsWith("data:")) {
+    try {
+      const img = await loadImage(ticketData.bodyImageUrl);
+      ctx.save();
+      ctx.globalAlpha = 0.22;
+      ctx.drawImage(img, W * 0.38, 0, W * 0.62, H);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    } catch {}
+  }
+
+  // Perforated separator
+  const perfX = W * 0.68;
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,0.3)";
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6, 5]);
+  ctx.beginPath();
+  ctx.moveTo(perfX, 10);
+  ctx.lineTo(perfX, H - 10);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Circle cutouts on perforated line
+  [20, H - 20].forEach(cy => {
+    ctx.save();
+    ctx.fillStyle = "#0d1b2a";
+    ctx.beginPath();
+    ctx.arc(perfX, cy, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // Logo
+  if (ticketData.logoUrl && ticketData.logoUrl.startsWith("data:")) {
+    try {
+      const img = await loadImage(ticketData.logoUrl);
+      ctx.save();
+      roundRect(ctx, 24, 24, 56, 56, 8);
+      ctx.clip();
+      ctx.drawImage(img, 24, 24, 56, 56);
+      ctx.restore();
+    } catch {}
+  } else {
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    roundRect(ctx, 24, 24, 56, 56, 8);
+    ctx.fill();
+    ctx.fillStyle = textColor;
+    ctx.font = "bold 22px serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🎟", 52, 60);
+    ctx.textAlign = "left";
+  }
+
+  // Event name
+  ctx.fillStyle = textColor;
+  ctx.font = `bold 17px 'Georgia', serif`;
+  wrapText(ctx, ticketData.eventName || ticketData.raffleName || "Event", 92, 42, perfX - 100, 22);
+
+  ctx.fillStyle = accentColor;
+  ctx.font = `12px 'Arial', sans-serif`;
+  ctx.fillText("OFFICIAL RAFFLE TICKET", 92, H * 0.52);
+
+  // Ticket info fields (left column)
+  const fields = [
+    ["BEARER", `${ticketData.firstName} ${ticketData.lastName}`],
+    ["CONTACT", ticketData.contact || "—"],
+    ...(ticketData.careOf ? [["C/O", ticketData.careOf]] : []),
+  ];
+  let fy = H * 0.62;
+  fields.forEach(([label, value]) => {
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.font = "9px Arial";
+    ctx.fillText(label, 24, fy);
+    ctx.fillStyle = textColor;
+    ctx.font = "13px Georgia";
+    ctx.fillText(value, 24, fy + 16);
+    fy += 38;
+  });
+
+  // Right stub — ticket number
+  ctx.fillStyle = "rgba(255,255,255,0.08)";
+  ctx.fillRect(perfX + 1, 0, W - perfX, H);
+
+  ctx.save();
+  ctx.translate(W - 24, H / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center";
+  ctx.fillStyle = accentColor;
+  ctx.font = "bold 11px 'Courier New', monospace";
+  ctx.fillText(ticketData.ticketNumber, 0, 0);
+  ctx.fillStyle = "rgba(255,255,255,0.4)";
+  ctx.font = "9px Arial";
+  ctx.fillText("TICKET NO.", 0, -14);
+  ctx.restore();
+
+  return canvas.toDataURL("image/png");
+}
+
+function loadImage(src) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = src;
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function wrapText(ctx, text, x, y, maxW, lineH) {
+  const words = text.split(" ");
+  let line = "";
+  let cy = y;
+  words.forEach(word => {
+    const test = line + word + " ";
+    if (ctx.measureText(test).width > maxW && line !== "") {
+      ctx.fillText(line, x, cy);
+      line = word + " ";
+      cy += lineH;
+    } else {
+      line = test;
+    }
+  });
+  ctx.fillText(line, x, cy);
+}
+
+// =============================================
+// SHARE TICKET
+// =============================================
+async function shareTicket(ticketData) {
+  const dataUrl = await renderTicketToCanvas(ticketData);
+
+  // Try Web Share API first (mobile native)
+  if (navigator.share && navigator.canShare) {
+    try {
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `ticket-${ticketData.ticketNumber}.png`, { type: "image/png" });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: `Raffle Ticket — ${ticketData.eventName || ticketData.raffleName}`,
+          text: `🎟 Ticket #${ticketData.ticketNumber} for ${ticketData.firstName} ${ticketData.lastName}`,
+          files: [file],
+        });
+        return;
+      }
+    } catch (e) { /* fall through */ }
+  }
+  return dataUrl;
+}
+
+async function downloadTicket(ticketData) {
+  const dataUrl = await renderTicketToCanvas(ticketData);
+  const a = document.createElement("a");
+  a.href = dataUrl;
+  a.download = `raffle-ticket-${ticketData.ticketNumber}.png`;
+  a.click();
+}
+
+async function whatsappTicket(ticketData) {
+  const dataUrl = await renderTicketToCanvas(ticketData);
+  // Download first, then open whatsapp
+  const a = document.createElement("a");
+  a.href = dataUrl;
+  a.download = `raffle-ticket-${ticketData.ticketNumber}.png`;
+  a.click();
+  setTimeout(() => {
+    const msg = encodeURIComponent(`🎟 Raffle Ticket\nEvent: ${ticketData.eventName || ticketData.raffleName}\nBearer: ${ticketData.firstName} ${ticketData.lastName}\nTicket No: ${ticketData.ticketNumber}\n\n(Please attach the downloaded ticket image)`);
+    window.open(`https://wa.me/?text=${msg}`, "_blank");
+  }, 800);
+}
+
+// =============================================
+// RENDER ENGINE — Minimal vanilla DOM updates
+// =============================================
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = buildHTML();
+  attachEvents();
+}
+
+function buildHTML() {
+  return `
+    ${buildNav()}
+    ${buildScreen()}
+  `;
+}
+
+function buildNav() {
+  const links = [
+    { label: "New Raffle", screen: "initiate" },
+    { label: "Get Tickets", screen: "ticket-login" },
+    { label: "Admin", screen: "admin-login" },
+  ];
+  return `
+    <nav class="topnav">
+      <div class="topnav-brand" data-action="goto-home">
+        <span class="dot"></span>
+        RaffleForge
+      </div>
+      <div class="topnav-links">
+        ${links.map(l => `<button class="nav-btn ${state.screen === l.screen ? "active" : ""}" data-action="goto-${l.screen}">${l.label}</button>`).join("")}
+      </div>
+    </nav>
+  `;
+}
+
+function buildScreen() {
+  switch (state.screen) {
+    case "home":         return buildHome();
+    case "initiate":     return buildInitiate();
+    case "ticket-login": return buildTicketLogin();
+    case "ticketing":    return buildTicketing();
+    case "admin-login":  return buildAdminLogin();
+    case "admin":        return buildAdmin();
+    default:             return buildHome();
+  }
+}
+
+// ---- HOME ----
+function buildHome() {
+  return `
+    <div class="home-hero">
+      <p class="section-eyebrow">Event Ticketing Platform</p>
+      <h1 class="home-hero-title">Run your raffle with <span>confidence</span></h1>
+      <p class="home-hero-sub">Create beautiful raffle tickets, manage distributors, and track every ticket — all powered by your own Google Sheet.</p>
+      <div class="home-cards">
+        <div class="home-card" data-action="goto-initiate">
+          <div class="home-card-icon">🎪</div>
+          <div class="home-card-title">Create Raffle</div>
+          <div class="home-card-desc">Set up your event, upload logo, choose a template, and get your raffle link.</div>
+        </div>
+        <div class="home-card" data-action="goto-ticket-login">
+          <div class="home-card-icon">🎟</div>
+          <div class="home-card-title">Issue Tickets</div>
+          <div class="home-card-desc">Distributors log in to generate and share official raffle tickets instantly.</div>
+        </div>
+        <div class="home-card" data-action="goto-admin-login">
+          <div class="home-card-icon">📊</div>
+          <div class="home-card-title">Admin Panel</div>
+          <div class="home-card-desc">Monitor sales, manage distributors, and close your raffle when ready.</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---- INITIATE ----
+const templates = [
+  { id: "classic",  name: "Classic Navy",   cls: "tpl-classic"  },
+  { id: "royal",    name: "Royal Purple",   cls: "tpl-royal"    },
+  { id: "crimson",  name: "Crimson Red",    cls: "tpl-crimson"  },
+  { id: "emerald",  name: "Emerald Green",  cls: "tpl-emerald"  },
+  { id: "gold",     name: "Sunset Gold",    cls: "tpl-gold"     },
+  { id: "midnight", name: "Midnight Blue",  cls: "tpl-midnight" },
+];
+
+function buildInitiate() {
+  const f = window._initiateForm || {};
+  const selectedTpl = f.templateId || "classic";
+  return `
+    <div class="page">
+      <p class="section-eyebrow">Step 1</p>
+      <h1 class="section-title">Create Your Raffle</h1>
+      <p class="section-sub">Set up your raffle event. You'll receive credentials to share with your ticket distributors.</p>
+      ${state.error ? `<div class="alert alert-error">⚠️ ${state.error}</div>` : ""}
+      ${state.success ? `
+        <div class="alert alert-success">✅ Raffle created! Save these details:</div>
+        <div class="raffle-id-display">
+          <strong>Raffle Sheet ID</strong>
+          ${state.success.raffleSheetId}
+          <strong style="margin-top:8px">Raffle ID</strong>
+          ${state.success.raffleId}
+          <strong style="margin-top:8px">What to share with distributors</strong>
+          Sheet ID + their distributor password (set from Admin page)
+        </div>
+        <div class="mt-16 flex gap-8">
+          <button class="btn btn-primary" data-action="goto-admin-login">Go to Admin →</button>
+          <button class="btn btn-outline" data-action="copy-sheet-id" data-value="${state.success.raffleSheetId}">Copy Sheet ID</button>
+        </div>
+      ` : `
+      <div class="card">
+        <div class="card-title"><span class="icon">📋</span> Raffle Details</div>
+        <div class="field">
+          <label>Raffle Name *</label>
+          <input type="text" id="raffleName" placeholder="e.g. Indians Super Cup Raffle 2025" value="${f.raffleName||""}" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Event Name</label>
+            <input type="text" id="eventName" placeholder="e.g. Indians Super Cup" value="${f.eventName||""}" />
+          </div>
+          <div class="field">
+            <label>Admin Password *</label>
+            <input type="password" id="adminPassword" placeholder="Strong passcode for admin" value="${f.adminPassword||""}" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Google Sheet Link (optional)</label>
+          <input type="url" id="googleSheetLink" placeholder="https://docs.google.com/spreadsheets/d/..." value="${f.googleSheetLink||""}" />
+          <div class="field-hint">Paste a Google Sheet you own. Leave blank to auto-create one. Make sure it's shared with your Apps Script service account.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🎨</span> Branding</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Your Logo</label>
+            <div class="upload-box" id="logo-upload-box">
+              <input type="file" id="logoFile" accept="image/*" />
+              ${f.logoUrl ? `<img class="upload-preview" src="${f.logoUrl}" alt="logo" />` : `<div class="upload-icon">🖼</div><div class="upload-text">Click to upload logo</div>`}
+            </div>
+          </div>
+          <div class="field">
+            <label>Ticket Body Image</label>
+            <div class="upload-box" id="body-upload-box">
+              <input type="file" id="bodyFile" accept="image/*" />
+              ${f.bodyImageUrl ? `<img class="upload-preview" src="${f.bodyImageUrl}" alt="body" />` : `<div class="upload-icon">🏟</div><div class="upload-text">Background / event photo</div>`}
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Select Ticket Template</label>
+          <div class="template-grid">
+            ${templates.map(t => `
+              <div class="template-option ${selectedTpl === t.id ? "selected" : ""}" data-action="select-template" data-tpl="${t.id}">
+                <div class="template-preview ${t.cls}">${t.name}</div>
+                <div class="template-name">${t.name}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" data-action="create-raffle" ${state.loading ? "disabled" : ""}>
+        ${state.loading ? '<span class="spinner"></span> Creating...' : '🎪 Create Raffle'}
+      </button>
+      `}
+    </div>
+  `;
+}
+
+// ---- TICKET LOGIN ----
+function buildTicketLogin() {
+  return `
+    <div class="page">
+      <div class="login-box">
+        <p class="section-eyebrow">Distributor Access</p>
+        <h1 class="section-title">Issue Tickets</h1>
+        <p class="section-sub">Enter your raffle's Sheet ID and your distributor password to start issuing tickets.</p>
+        ${state.error ? `<div class="alert alert-error">⚠️ ${state.error}</div>` : ""}
+        <div class="card">
+          <div class="field">
+            <label>Raffle Sheet ID *</label>
+            <input type="text" id="dist-sheet-id" placeholder="Sheet ID from raffle organizer" />
+            <div class="field-hint">The organizer shares this with you when adding you as a distributor.</div>
+          </div>
+          <div class="field">
+            <label>Your Distributor Password *</label>
+            <input type="password" id="dist-password" placeholder="Your personal distributor password" />
+          </div>
+          <button class="btn btn-primary btn-block mt-16" data-action="dist-login" ${state.loading ? "disabled" : ""}>
+            ${state.loading ? '<span class="spinner"></span>' : '🔑 Login to Issue Tickets'}
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---- TICKETING ----
+function buildTicketing() {
+  const r = state.raffle;
+  const meta = r?.meta || {};
+  const tpl = meta.templateId || "classic";
+  const isClosed = meta.status === "closed";
+  const ticketPreview = buildTicketPreview({
+    templateId: tpl,
+    raffleName: meta.raffleName,
+    eventName: meta.eventName,
+    logoUrl: meta.logoUrl,
+    bodyImageUrl: meta.bodyImageUrl,
+    firstName: "John",
+    lastName: "Doe",
+    contact: "+1 555-0100",
+    ticketNumber: "SAMPLE-D01-0001",
+  }, false);
+
+  const ticketResult = state.ticketResult;
+  return `
+    <div class="page">
+      ${isClosed ? `<div class="closed-banner">🔒 THIS RAFFLE IS CLOSED — No new tickets can be issued</div>` : ""}
+      <div class="flex-between" style="margin-bottom:24px">
+        <div>
+          <p class="section-eyebrow">Raffle Ticketing</p>
+          <h1 class="section-title" style="font-size:1.5rem">${meta.raffleName || "Raffle"}</h1>
+          <span class="badge ${isClosed ? "badge-closed" : "badge-active"}">${isClosed ? "Closed" : "Active"}</span>
+          <span class="dist-tag" style="margin-left:8px">Distributor: ${state.dist?.distName} (${state.dist?.distId})</span>
+        </div>
+      </div>
+
+      ${ticketResult ? `
+        <div class="alert alert-success">✅ Ticket <strong>${ticketResult.ticketNumber}</strong> issued for <strong>${ticketResult.firstName} ${ticketResult.lastName}</strong></div>
+        <div class="ticket-wrap" id="ticket-render">
+          ${buildTicketPreview({
+            ...ticketResult,
+            templateId: tpl,
+            raffleName: meta.raffleName,
+            eventName: meta.eventName,
+            logoUrl: meta.logoUrl,
+            bodyImageUrl: meta.bodyImageUrl,
+          }, true)}
+        </div>
+        <div class="share-row">
+          <button class="share-btn share-btn-native" data-action="share-ticket">📤 Share</button>
+          <button class="share-btn share-btn-wa" data-action="whatsapp-ticket">💬 WhatsApp</button>
+          <button class="share-btn share-btn-dl" data-action="download-ticket">⬇️ Download PNG</button>
+        </div>
+        <div class="divider"></div>
+        <button class="btn btn-outline btn-block" data-action="new-ticket">＋ Issue Another Ticket</button>
+      ` : `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+          <div>
+            <div class="card">
+              <div class="card-title"><span class="icon">👤</span> Ticket Holder Info</div>
+              ${state.error ? `<div class="alert alert-error">⚠️ ${state.error}</div>` : ""}
+              <div class="field-row">
+                <div class="field">
+                  <label>First Name *</label>
+                  <input type="text" id="firstName" placeholder="John" />
+                </div>
+                <div class="field">
+                  <label>Last Name *</label>
+                  <input type="text" id="lastName" placeholder="Doe" />
+                </div>
+              </div>
+              <div class="field">
+                <label>Contact (Phone / Email)</label>
+                <input type="text" id="contact" placeholder="+1 555-0100" />
+              </div>
+              <div class="field">
+                <label>Care of (C/O)</label>
+                <input type="text" id="careOf" placeholder="Optional — organization or family name" />
+              </div>
+              <button class="btn btn-primary btn-block mt-16" data-action="generate-ticket" ${isClosed || state.loading ? "disabled" : ""}>
+                ${state.loading ? '<span class="spinner"></span> Generating...' : '🎟 Generate Ticket'}
+              </button>
+            </div>
+          </div>
+          <div>
+            <p style="font-size:0.72rem;color:#8898aa;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px">Preview</p>
+            <div class="ticket-wrap">${ticketPreview}</div>
+          </div>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function buildTicketPreview(data, live = false) {
+  const tplClass = `tpl-theme-${data.templateId || "classic"}`;
+  return `
+    <div class="ticket ${tplClass}">
+      <div class="ticket-header">
+        ${data.logoUrl && data.logoUrl.startsWith("data:")
+          ? `<img class="ticket-logo" src="${data.logoUrl}" alt="logo" />`
+          : `<div class="ticket-logo-placeholder">🎟</div>`}
+        <div>
+          <div class="ticket-event-name">${data.eventName || data.raffleName || "Event Name"}</div>
+          <div style="font-size:0.68rem;opacity:0.6;letter-spacing:0.12em;text-transform:uppercase;margin-top:3px">Official Raffle Ticket</div>
+        </div>
+      </div>
+      ${data.bodyImageUrl && data.bodyImageUrl.startsWith("data:")
+        ? `<img class="ticket-body-img" src="${data.bodyImageUrl}" alt="event" />`
+        : `<div class="ticket-body-placeholder">[ Event Image ]</div>`}
+      <div class="ticket-perf">
+        <div class="circle circle-left"></div>
+        <div class="circle circle-right"></div>
+      </div>
+      <div class="ticket-info">
+        <div class="ticket-info-row">
+          <span class="ticket-info-label">Bearer</span>
+          <span class="ticket-info-value">${data.firstName || "—"} ${data.lastName || ""}</span>
+        </div>
+        ${data.contact ? `<div class="ticket-info-row"><span class="ticket-info-label">Contact</span><span class="ticket-info-value">${data.contact}</span></div>` : ""}
+        ${data.careOf ? `<div class="ticket-info-row"><span class="ticket-info-label">C/O</span><span class="ticket-info-value">${data.careOf}</span></div>` : ""}
+      </div>
+      <div class="ticket-number-large"># ${data.ticketNumber || "XXXX-D00-0000"}</div>
+    </div>
+  `;
+}
+
+// ---- ADMIN LOGIN ----
+function buildAdminLogin() {
+  return `
+    <div class="page">
+      <div class="login-box">
+        <p class="section-eyebrow">Administration</p>
+        <h1 class="section-title">Admin Panel</h1>
+        <p class="section-sub">Enter your raffle Sheet ID and admin passcode to manage your raffle.</p>
+        ${state.error ? `<div class="alert alert-error">⚠️ ${state.error}</div>` : ""}
+        <div class="card">
+          <div class="field">
+            <label>Raffle Sheet ID *</label>
+            <input type="text" id="admin-sheet-id" placeholder="Your raffle's Google Sheet ID" />
+          </div>
+          <div class="field">
+            <label>Admin Passcode *</label>
+            <input type="password" id="admin-password" placeholder="Admin passcode" />
+          </div>
+          <button class="btn btn-primary btn-block mt-16" data-action="admin-login" ${state.loading ? "disabled" : ""}>
+            ${state.loading ? '<span class="spinner"></span>' : '🔐 Access Admin Panel'}
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---- ADMIN ----
+function buildAdmin() {
+  const d = state.adminData;
+  if (!d) return `<div class="inline-loader"><span class="spinner"></span> Loading...</div>`;
+  const { meta, tickets, distributors } = d;
+  const isClosed = meta.status === "closed";
+  const byDist = {};
+  distributors.forEach(dist => {
+    byDist[dist.DistributorId] = tickets.filter(t => t.DistributorId === dist.DistributorId).length;
+  });
+
+  return `
+    <div class="page-wide">
+      <div class="flex-between" style="margin-bottom:8px">
+        <div>
+          <p class="section-eyebrow">Administration</p>
+          <h1 class="section-title" style="font-size:1.6rem">${meta.raffleName || "Raffle"}</h1>
+        </div>
+        <span class="badge ${isClosed ? "badge-closed" : "badge-active"}" style="font-size:0.82rem;padding:6px 14px">${isClosed ? "🔒 Closed" : "🟢 Active"}</span>
+      </div>
+      ${state.error ? `<div class="alert alert-error">⚠️ ${state.error}</div>` : ""}
+      ${state.success ? `<div class="alert alert-success">✅ ${state.success}</div>` : ""}
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-value">${tickets.length}</div><div class="stat-label">Tickets Issued</div></div>
+        <div class="stat-card"><div class="stat-value">${distributors.length}</div><div class="stat-label">Distributors</div></div>
+        <div class="stat-card"><div class="stat-value">${distributors.filter(d=>d.Active==="true").length}</div><div class="stat-label">Active Dist.</div></div>
+      </div>
+
+      <!-- Add Distributor -->
+      <div class="card">
+        <div class="card-title"><span class="icon">➕</span> Add Distributor</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Distributor Name *</label>
+            <input type="text" id="dist-name" placeholder="e.g. Rajan Kumar" />
+          </div>
+          <div class="field">
+            <label>Distributor Password *</label>
+            <input type="text" id="dist-pwd" placeholder="Unique login password for them" />
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" data-action="add-distributor">Add Distributor</button>
+      </div>
+
+      <!-- Distributors list -->
+      <div class="card">
+        <div class="card-title"><span class="icon">👥</span> Distributors</div>
+        ${distributors.length === 0 ? `<p style="color:var(--text-muted);font-size:0.88rem">No distributors yet. Add one above.</p>` : `
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Name</th><th>Tickets</th><th>Status</th><th>Added</th></tr></thead>
+              <tbody>
+                ${distributors.map(dist => `
+                  <tr>
+                    <td><span class="dist-tag">${dist.DistributorId}</span></td>
+                    <td>${dist.Name}</td>
+                    <td><strong>${byDist[dist.DistributorId] || 0}</strong></td>
+                    <td><span class="badge ${dist.Active==="true" ? "badge-active" : "badge-closed"}">${dist.Active==="true" ? "Active" : "Inactive"}</span></td>
+                    <td style="color:var(--text-muted);font-size:0.75rem">${dist.CreatedAt ? new Date(dist.CreatedAt).toLocaleDateString() : "—"}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </div>
+
+      <!-- Tickets table -->
+      <div class="card">
+        <div class="card-title"><span class="icon">🎟</span> All Tickets (${tickets.length})</div>
+        ${tickets.length === 0 ? `<p style="color:var(--text-muted);font-size:0.88rem">No tickets issued yet.</p>` : `
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Ticket No.</th><th>Name</th><th>Contact</th><th>C/O</th><th>Distributor</th><th>Date</th></tr></thead>
+              <tbody>
+                ${tickets.map(t => `
+                  <tr>
+                    <td><span class="ticket-num">${t.TicketNumber}</span></td>
+                    <td>${t.FirstName} ${t.LastName}</td>
+                    <td>${t.Contact || "—"}</td>
+                    <td>${t.CareOf || "—"}</td>
+                    <td><span class="dist-tag">${t.DistributorId}</span> ${t.DistributorName || ""}</td>
+                    <td style="color:var(--text-muted);font-size:0.75rem">${t.CreatedAt ? new Date(t.CreatedAt).toLocaleDateString() : "—"}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </div>
+
+      <!-- Close Raffle -->
+      ${!isClosed ? `
+        <div class="card" style="border:2px solid #c0392b20">
+          <div class="card-title"><span class="icon" style="background:#c0392b">⚠️</span> Danger Zone</div>
+          <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Closing the raffle prevents any further ticket issuance. This cannot be undone.</p>
+          <button class="btn btn-danger" data-action="close-raffle">🔒 Close This Raffle</button>
+        </div>
+      ` : `
+        <div class="alert alert-error">🔒 This raffle has been closed. No more tickets can be issued.</div>
+      `}
+    </div>
+  `;
+}
+
+// =============================================
+// EVENT HANDLERS
+// =============================================
+function attachEvents() {
+  document.querySelectorAll("[data-action]").forEach(el => {
+    el.addEventListener("click", handleAction);
+  });
+  // File uploads
+  const logoFile = document.getElementById("logoFile");
+  if (logoFile) logoFile.addEventListener("change", async e => {
+    if (e.target.files[0]) {
+      const dataUrl = await fileToDataUrl(e.target.files[0]);
+      window._initiateForm = { ...(window._initiateForm || {}), logoUrl: dataUrl };
+      collectInitiateForm();
+      render();
+    }
+  });
+  const bodyFile = document.getElementById("bodyFile");
+  if (bodyFile) bodyFile.addEventListener("change", async e => {
+    if (e.target.files[0]) {
+      const dataUrl = await fileToDataUrl(e.target.files[0]);
+      window._initiateForm = { ...(window._initiateForm || {}), bodyImageUrl: dataUrl };
+      collectInitiateForm();
+      render();
+    }
+  });
+}
+
+function collectInitiateForm() {
+  const fields = ["raffleName","eventName","adminPassword","googleSheetLink"];
+  const f = window._initiateForm || {};
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) f[id] = el.value;
+  });
+  window._initiateForm = f;
+}
+
+async function handleAction(e) {
+  const action = e.currentTarget.dataset.action;
+
+  if (action === "goto-home")         return setState({ screen: "home", error: null, success: null });
+  if (action === "goto-initiate")     return setState({ screen: "initiate", error: null, success: null, ticketResult: null });
+  if (action === "goto-ticket-login") return setState({ screen: "ticket-login", error: null, success: null, ticketResult: null });
+  if (action === "goto-admin-login")  return setState({ screen: "admin-login", error: null, success: null });
+  if (action === "goto-ticketing")    return setState({ screen: "ticketing", error: null });
+  if (action === "new-ticket")        return setState({ ticketResult: null, error: null });
+
+  if (action === "select-template") {
+    window._initiateForm = { ...(window._initiateForm || {}), templateId: e.currentTarget.dataset.tpl };
+    collectInitiateForm();
+    render();
+    return;
+  }
+
+  if (action === "copy-sheet-id") {
+    navigator.clipboard.writeText(e.currentTarget.dataset.value).then(() => alert("Sheet ID copied!"));
+    return;
+  }
+
+  if (action === "create-raffle") {
+    collectInitiateForm();
+    const f = window._initiateForm || {};
+    if (!f.raffleName || !f.adminPassword) return setState({ error: "Raffle name and admin password are required." });
+    setState({ loading: true, error: null });
+    try {
+      const res = await api("createRaffle", {
+        raffleName: f.raffleName,
+        eventName: f.eventName,
+        adminPassword: f.adminPassword,
+        googleSheetLink: f.googleSheetLink,
+        templateId: f.templateId || "classic",
+        logoUrl: f.logoUrl || "",
+        bodyImageUrl: f.bodyImageUrl || "",
+      });
+      if (res.error) return setState({ loading: false, error: res.error });
+      window._initiateForm = {};
+      setState({ loading: false, error: null, success: res });
+    } catch (err) {
+      setState({ loading: false, error: "Network error. Check your Apps Script deployment URL." });
+    }
+    return;
+  }
+
+  if (action === "dist-login") {
+    const sheetId = document.getElementById("dist-sheet-id")?.value?.trim();
+    const pwd = document.getElementById("dist-password")?.value?.trim();
+    if (!sheetId || !pwd) return setState({ error: "Sheet ID and password are required." });
+    setState({ loading: true, error: null });
+    try {
+      const [loginRes, raffleRes] = await Promise.all([
+        api("loginDistributor", { raffleSheetId: sheetId, distPassword: pwd }),
+        api("getRaffle", { raffleSheetId: sheetId }),
+      ]);
+      if (!loginRes.success) return setState({ loading: false, error: loginRes.error || "Invalid password." });
+      if (raffleRes.error) return setState({ loading: false, error: raffleRes.error });
+      setState({
+        loading: false,
+        error: null,
+        screen: "ticketing",
+        dist: { distId: loginRes.distId, distName: loginRes.distName },
+        raffle: { raffleSheetId: sheetId, meta: raffleRes.meta },
+        ticketResult: null,
+      });
+    } catch {
+      setState({ loading: false, error: "Network error." });
+    }
+    return;
+  }
+
+  if (action === "generate-ticket") {
+    const firstName = document.getElementById("firstName")?.value?.trim();
+    const lastName  = document.getElementById("lastName")?.value?.trim();
+    const contact   = document.getElementById("contact")?.value?.trim();
+    const careOf    = document.getElementById("careOf")?.value?.trim();
+    if (!firstName || !lastName) return setState({ error: "First and last name are required." });
+    setState({ loading: true, error: null });
+    try {
+      const res = await api("createTicket", {
+        raffleSheetId: state.raffle.raffleSheetId,
+        distId: state.dist.distId,
+        distName: state.dist.distName,
+        firstName, lastName, contact, careOf,
+      });
+      if (!res.success) return setState({ loading: false, error: res.error || "Failed to create ticket." });
+      setState({
+        loading: false, error: null,
+        ticketResult: { ticketNumber: res.ticketNumber, firstName, lastName, contact, careOf,
+                        raffleName: res.raffleName, eventName: res.eventName },
+      });
+    } catch {
+      setState({ loading: false, error: "Network error." });
+    }
+    return;
+  }
+
+  if (action === "share-ticket") {
+    const td = buildTicketData();
+    const dataUrl = await shareTicket(td);
+    if (dataUrl) {
+      // native share not available — show download
+      downloadTicket(td);
+    }
+    return;
+  }
+  if (action === "download-ticket") { await downloadTicket(buildTicketData()); return; }
+  if (action === "whatsapp-ticket")  { await whatsappTicket(buildTicketData()); return; }
+
+  if (action === "admin-login") {
+    const sheetId = document.getElementById("admin-sheet-id")?.value?.trim();
+    const pwd = document.getElementById("admin-password")?.value?.trim();
+    if (!sheetId || !pwd) return setState({ error: "Sheet ID and passcode required." });
+    setState({ loading: true, error: null });
+    try {
+      const res = await api("adminLogin", { raffleSheetId: sheetId, password: pwd });
+      if (!res.success) return setState({ loading: false, error: res.error || "Invalid passcode." });
+      window._adminSheetId = sheetId;
+      window._adminPwd = pwd;
+      setState({ loading: false, screen: "admin", adminData: res, error: null, success: null });
+    } catch {
+      setState({ loading: false, error: "Network error." });
+    }
+    return;
+  }
+
+  if (action === "add-distributor") {
+    const name = document.getElementById("dist-name")?.value?.trim();
+    const pwd  = document.getElementById("dist-pwd")?.value?.trim();
+    if (!name || !pwd) return setState({ error: "Name and password required." });
+    setState({ loading: true, error: null });
+    try {
+      const res = await api("addDistributor", {
+        raffleSheetId: window._adminSheetId,
+        adminPassword: window._adminPwd,
+        name, distPassword: pwd,
+      });
+      if (!res.success) return setState({ loading: false, error: res.error });
+      // Refresh admin data
+      const refreshed = await api("adminLogin", { raffleSheetId: window._adminSheetId, password: window._adminPwd });
+      setState({ loading: false, error: null, success: `Distributor ${name} added with ID ${res.distId}`, adminData: refreshed });
+    } catch {
+      setState({ loading: false, error: "Network error." });
+    }
+    return;
+  }
+
+  if (action === "close-raffle") {
+    if (!confirm("Are you sure you want to CLOSE this raffle? This cannot be undone.")) return;
+    setState({ loading: true, error: null });
+    try {
+      const res = await api("closeRaffle", { raffleSheetId: window._adminSheetId, adminPassword: window._adminPwd });
+      if (!res.success) return setState({ loading: false, error: res.error });
+      const refreshed = await api("adminLogin", { raffleSheetId: window._adminSheetId, password: window._adminPwd });
+      setState({ loading: false, success: "Raffle closed successfully.", adminData: refreshed });
+    } catch {
+      setState({ loading: false, error: "Network error." });
+    }
+    return;
+  }
+}
+
+function buildTicketData() {
+  const r = state.ticketResult;
+  const meta = state.raffle?.meta || {};
+  return {
+    ...r,
+    templateId: meta.templateId || "classic",
+    raffleName: meta.raffleName,
+    eventName: meta.eventName,
+    logoUrl: meta.logoUrl,
+    bodyImageUrl: meta.bodyImageUrl,
+  };
+}
+
+// =============================================
+// BOOT
+// =============================================
+render();
+</script>
+</body>
+</html>
