@@ -619,7 +619,7 @@ tr:hover td { background: #f5f2ec; }
 // =============================================
 // CONFIG — Replace with your deployed Apps Script URL
 // =============================================
-const GAS_URL = "https://script.google.com/macros/s/AKfycbyVlr4mgWnXbQ0IkM41-cPX5T-Wj4tv1rZ9TclNS0T7VOJOmF7gOmhwFCFLLRbnAS0W0w/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycby5UKbX6Ak_8XDceX2Uku0lhxa-Ir8qu8TQ7qyHVuX6P8uE8F1P7bpQnuvPjHzzNVCWLA/exec";
 
 // =============================================
 // STATE
@@ -642,14 +642,40 @@ function setState(patch) {
 
 // =============================================
 // API HELPER
+// Google Apps Script blocks POST from external
+// origins. We use JSONP (script tag trick) which
+// works perfectly with doGet + callback param.
 // =============================================
 async function api(action, body = {}) {
-  const res = await fetch(GAS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action, ...body }),
+  const payload = btoa(unescape(encodeURIComponent(JSON.stringify({ action, ...body }))));
+  const callbackName = "cb_" + Date.now();
+  const url = GAS_URL + "?payload=" + encodeURIComponent(payload) + "&callback=" + callbackName;
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error("Timed out. Check Apps Script is deployed as 'Anyone' can access."));
+    }, 20000);
+
+    window[callbackName] = function(data) {
+      cleanup();
+      resolve(data);
+    };
+
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    script.onerror = function() {
+      cleanup();
+      reject(new Error("Network error. Check your Apps Script deployment URL."));
+    };
+    script.src = url;
+    document.head.appendChild(script);
   });
-  return res.json();
 }
 
 // =============================================
